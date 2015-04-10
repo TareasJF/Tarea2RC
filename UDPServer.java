@@ -1,0 +1,3 @@
+class UDPServer implements Server
+{
+}
