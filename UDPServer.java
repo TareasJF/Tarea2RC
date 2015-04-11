@@ -10,9 +10,11 @@ class UDPServer implements Server {
   int clientP;
   int controlP;
   int dataP;
+  String dir;
 
   public UDPServer () throws Exception {
   	serverSocket = new DatagramSocket(2121);
+  	dir = ".";
   }
 
   public void run() throws Exception {
@@ -20,6 +22,12 @@ class UDPServer implements Server {
   		String answer = receive();
   		if (answer.equals("open")) {
   			open();
+  		}
+  		else if (answer.equals("ls")) {
+  			ls();
+  		}
+  		else if (answer.equals("cd")) {
+  			cd(receive());
   		}
     }
   }
@@ -43,11 +51,44 @@ class UDPServer implements Server {
   }
 
   public void cd(String dir) throws Exception {
-    System.out.println("UDP cd "+ dir +"...");
+    if (dir.startsWith("/")) {
+    	File f = new File(dir);
+			if (f.exists() && f.isDirectory()) {
+			  this.dir = dir;
+			  send("250");
+			  return;
+			}
+			send("550");
+    }
+    else {
+    	File f = new File(this.dir + "/" + dir);
+			if (f.exists() && f.isDirectory()) {
+				if (this.dir.equals(".")) {
+					this.dir = "";
+				}
+			  this.dir = this.dir + dir;
+			  send("250");
+			  return;
+			}
+			send("550");
+    }
   }
 
   public void ls() throws Exception {
     System.out.println("UDP ls");
+    String list = " ";
+    File dir = new File(this.dir);
+    for (String d : dir.list()) {
+    	File f = new File(this.dir+"/"+d);
+    	if (f.isFile()) {
+    		d = "file   " + d;
+    	}
+    	else {
+    		d = "dir    " + d;
+    	}
+			send(d);
+		}
+		send("226");
   }
 
   public void get(String fname) throws Exception {

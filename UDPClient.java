@@ -17,7 +17,7 @@ class UDPClient implements Client
     dataP = data;
   }
 
-  public void open(String ip) throws Exception{
+  public void open(String ip) throws Exception {
     System.out.println("UDP Conectando con "+ ip +"...");
     serverAdd = InetAddress.getByName(ip);
     serverIp = ip;
@@ -46,25 +46,36 @@ class UDPClient implements Client
         System.out.println("Login Error");    
       }
     }
-    clientSocket.close();
   }
-  public void cd(String dir) {
-    System.out.println("UDP cd "+ dir +"...");
+  public void cd(String dir) throws Exception {
     if (!conected) {
       help(1);
       return;
     }
+    send("cd");
+    send(dir);
+    String ans = receive();
+    if (ans.equals("250")) {
+      System.out.println(dir + " es el nuevo directorio de trabajo.");
+    }
+    else {
+      System.out.println(dir + " no encontrado.");
+    }
 
   }
-  public void ls() {
-    System.out.println("UDP ls");
+  public void ls() throws Exception {
     if (!conected) {
       help(1);
       return;
     }
-
+    send("ls");
+    String ans = receive();
+    while (!ans.equals("226")) {
+      System.out.println(ans);
+      ans = receive();
+    }
   }
-  public void get(String fname) {
+  public void get(String fname) throws Exception {
     System.out.println("UDP get "+ fname +"...");
     if (!conected) {
       help(1);
@@ -72,7 +83,7 @@ class UDPClient implements Client
     }
 
   }
-  public void put(String fname) {
+  public void put(String fname) throws Exception {
     System.out.println("UDP put "+ fname +"...");
     if (!conected) {
       help(1);
@@ -81,8 +92,9 @@ class UDPClient implements Client
 
   }
 
-  public void quit() {
+  public void quit() throws Exception {
     System.out.println("UDP Terminando sesión.");
+    clientSocket.close();
   }
 
   public void help(int n) {

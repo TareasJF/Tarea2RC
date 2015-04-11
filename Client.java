@@ -5,11 +5,11 @@ import java.util.*;
 interface Client
 {
   public void open(String ip) throws Exception;
-  public void cd(String dir);
-  public void ls();
-  public void get(String fname);
-  public void put(String fname);
-  public void quit();
+  public void cd(String dir) throws Exception;
+  public void ls() throws Exception;
+  public void get(String fname) throws Exception;
+  public void put(String fname) throws Exception;
+  public void quit() throws Exception;
   public void help(int n);
 
   public static void main(String args[])throws Exception {
