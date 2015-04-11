@@ -4,23 +4,47 @@ import java.util.*;
 
 class TCPClient implements Client
 {
+  Boolean conected;
+  Socket socket;
+  String serverIp;
+
+  public TCPClient() {
+    conected = false;
+  }
+
   public void open(String ip) {
     System.out.println("TCP Abriendo conexión con "+ ip +"...");
   }
   public void cd(String dir) {
     System.out.println("TCP cd "+ dir +"...");
+    if (!conected) {
+      help(1);
+      return;
+    }
 
   }
   public void ls() {
     System.out.println("TCP ls");
+    if (!conected) {
+      help(1);
+      return;
+    }
 
   }
   public void get(String fname) {
     System.out.println("TCP get "+ fname +"...");
+    if (!conected) {
+      help(1);
+      return;
+    }
 
   }
   public void put(String fname) {
     System.out.println("TCP put "+ fname +"...");
+    if (!conected) {
+      help(1);
+      return;
+    }
 
   }
 

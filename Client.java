@@ -4,7 +4,7 @@ import java.util.*;
 
 interface Client
 {
-  public void open(String ip);
+  public void open(String ip) throws Exception;
   public void cd(String dir);
   public void ls();
   public void get(String fname);
@@ -12,7 +12,10 @@ interface Client
   public void quit();
   public void help(int n);
 
-  public static void main(String args[])throws IOException {
+  public static void main(String args[])throws Exception {
+    int controlP = 2121;
+    int dataP = 2020;
+
     Client client;
     if (args.length != 1) {
       System.out.println("Uso: ");
@@ -23,9 +26,10 @@ interface Client
       return;
     }
     else if (args[0].equals("udp")) {
-      client = new UDPClient();
+      client = new UDPClient(controlP,dataP);
     }
     else if (args[0].equals("tcp")) {
+
       client = new TCPClient();
     }
     else {
@@ -40,7 +44,32 @@ interface Client
           continue;
         }
         client.open(params[1]);
+      }
+      else if (params[0].equals("cd")) {
+        if (params.length == 1) {
+          client.help(0);
+          continue;
+        }
+        client.cd(params[1]);
+      }
+      else if (params[0].equals("ls")) {
+        client.ls();
+        continue;
       } 
+      else if (params[0].equals("get")) {
+        if (params.length == 1) {
+          client.help(0);
+          continue;
+        }
+        client.get(params[1]);
+      } 
+      else if (params[0].equals("put")) {
+        if (params.length == 1) {
+          client.help(0);
+          continue;
+        }
+        client.put(params[1]);
+      }
       else if (params[0].equals("quit")) {
         client.quit();
         break;
