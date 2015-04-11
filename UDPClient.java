@@ -26,15 +26,15 @@ class UDPClient implements Client
     send("open");
     String answer = receive();
 
-    if (answer.contains("220")) {
+    if (answer.equals("220")) {
       String input =  System.console().readLine("Ingrese Usuario > ");
       send(input);
       answer = receive();
-      if (answer.contains("331")) {
+      if (answer.equals("331")) {
         input =  System.console().readLine("Ingrese Password > ");
         send(input);
         answer = receive();
-        if (answer.contains("230")) {
+        if (answer.equals("230")) {
           System.out.println("Login OK");
           conected = true;
         }
@@ -120,7 +120,7 @@ class UDPClient implements Client
     DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
     clientSocket.receive(receivePacket);
     String answer = new String(receivePacket.getData());
-    return answer;
+    return answer.trim();
   }
 
 }

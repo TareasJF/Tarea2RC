@@ -18,7 +18,7 @@ class UDPServer implements Server {
   public void run() throws Exception {
   	while(true) {
   		String answer = receive();
-  		if (answer.contains("open")) {
+  		if (answer.equals("open")) {
   			open();
   		}
     }
@@ -27,10 +27,10 @@ class UDPServer implements Server {
 	public void open() throws Exception {
 		send("220");
 		String answer = receive();
-		if (answer.contains("admin")) {
+		if (answer.equals("admin")) {
 			send("331");
 			answer = receive();
-			if (answer.contains("passwordSecreto")) {
+			if (answer.equals("passwordSecreto")) {
 				send("230");
 			}
 			else {
@@ -42,64 +42,24 @@ class UDPServer implements Server {
 		}
   }
 
-  public void cd(String dir) {
+  public void cd(String dir) throws Exception {
     System.out.println("UDP cd "+ dir +"...");
-    if (!true) {
-      help(1);
-      return;
-    }
-
   }
-  public void ls() {
+
+  public void ls() throws Exception {
     System.out.println("UDP ls");
-    if (!true) {
-      help(1);
-      return;
-    }
-
   }
-  public void get(String fname) {
+
+  public void get(String fname) throws Exception {
     System.out.println("UDP get "+ fname +"...");
-    if (!true) {
-      help(1);
-      return;
-    }
-
   }
-  public void put(String fname) {
+
+  public void put(String fname) throws Exception {
     System.out.println("UDP put "+ fname +"...");
-    if (!true) {
-      help(1);
-      return;
-    }
-
   }
 
-  public void quit() {
+  public void quit() throws Exception {
     System.out.println("UDP Terminando sesión.");
-  }
-
-  public void help(int n) {
-    if (n == 0) {
-      System.out.println("Manual UDPClient:");
-      System.out.println("  Opciones:");
-      System.out.println("    - open  <dirección ip>");
-      System.out.println("          Abre una conexión con <dirección ip>.\n");
-      System.out.println("    - cd <directorio>");
-      System.out.println("          Cambio directorio.\n");
-      System.out.println("    - ls");
-      System.out.println("          Contenido del directorio actual.\n");
-      System.out.println("    - get  <archivo>");
-      System.out.println("          Extrae <archivo> del servidor.\n");
-      System.out.println("    - put  <archivo>");
-      System.out.println("          Sube <archivo> al servidor.\n");
-      System.out.println("    - quit");
-      System.out.println("          Termina la sesión.\n");
-    }
-    else if (n == 1) {
-      System.out.println("Error 1:");
-      System.out.println("  Debe abrir una conexión primero.");
-    }
   }
 
   public void send(String s) throws Exception {
@@ -108,6 +68,7 @@ class UDPServer implements Server {
 	  DatagramPacket sendPacket =
 	  new DatagramPacket(sendData, sendData.length, clientAdd, clientP);
 	  serverSocket.send(sendPacket);
+    System.out.println(">>" + s);
   }
 
   public String receive() throws Exception {
@@ -117,7 +78,7 @@ class UDPServer implements Server {
 	  clientAdd = receivePacket.getAddress();
 	  clientP = receivePacket.getPort();
 	  String answer = new String( receivePacket.getData());
-    System.out.println(answer);
-	  return answer;
+    System.out.println("< " + answer);
+	  return answer.trim();
   }
 }
