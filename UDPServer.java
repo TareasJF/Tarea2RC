@@ -29,6 +29,9 @@ class UDPServer implements Server {
   		else if (answer.equals("cd")) {
   			cd(receive());
   		}
+  		else if (answer.equals("get")) {
+  			get(receive());
+  		}
     }
   }
 
@@ -93,10 +96,13 @@ class UDPServer implements Server {
 
   public void get(String fname) throws Exception {
     System.out.println("UDP get "+ fname +"...");
+    send("150");
+    sendFile(fname);
   }
 
   public void put(String fname) throws Exception {
     System.out.println("UDP put "+ fname +"...");
+
   }
 
   public void quit() throws Exception {
@@ -121,5 +127,26 @@ class UDPServer implements Server {
 	  String answer = new String( receivePacket.getData());
     System.out.println("< " + answer);
 	  return answer.trim();
+  }
+
+  public void sendFile(String fname) throws Exception {
+    File file = new File(fname);
+    if (file.isFile()) {
+      try {
+        DataInputStream diStream = new DataInputStream(new FileInputStream(file));
+        long len = (int) file.length();
+        byte[] fileBytes = new byte[(int) len];
+        int read = 0;
+        int numRead = 0;
+        while (read < fileBytes.length && (numRead = diStream.read(fileBytes, read, fileBytes.length - read)) >= 0) {
+          read = read + numRead;
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        System.out.println(e);
+      }
+    } else {
+      System.out.println("path specified is not pointing to a file");
+    }
   }
 }

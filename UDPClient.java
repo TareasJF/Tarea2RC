@@ -81,13 +81,23 @@ class UDPClient implements Client
       help(1);
       return;
     }
-
+    send("get");
+    send(fname);
+    String ans = receive();
+    if (ans.equals("150")) {
+      receiveFile(fname);
+    }
   }
   public void put(String fname) throws Exception {
     System.out.println("UDP put "+ fname +"...");
     if (!conected) {
       help(1);
       return;
+    }
+    send("put");
+    String ans = receive();
+    if (ans.equals("150")) {
+
     }
 
   }
@@ -133,6 +143,33 @@ class UDPClient implements Client
     clientSocket.receive(receivePacket);
     String answer = new String(receivePacket.getData());
     return answer.trim();
+  }
+
+  public void receiveFile(String file) throws Exception {
+    int b = Integer.parseInt(receive());
+    byte[] receiveData = new byte[b];
+    DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+    clientSocket.receive(receivePacket);
+
+    if (!new File(file).exists()) {
+        new File(file).mkdirs();
+    }
+    File dstFile = new File(file);
+
+    FileOutputStream fileOutputStream = null;
+    try {
+        fileOutputStream = new FileOutputStream(dstFile);
+        fileOutputStream.write(receiveData);
+        fileOutputStream.flush();
+        fileOutputStream.close();
+        System.out.println("Output file : " + file + " is successfully saved ");
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } 
+    catch (IOException e) {
+        e.printStackTrace();
+    }
   }
 
 }
