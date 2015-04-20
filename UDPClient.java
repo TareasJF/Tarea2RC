@@ -146,6 +146,7 @@ class UDPClient implements Client
   }
 
   public void receiveFile(String file) throws Exception {
+    file = "rec" + file;
     int b = Integer.parseInt(receive());
     byte[] receiveData = new byte[b];
     DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);

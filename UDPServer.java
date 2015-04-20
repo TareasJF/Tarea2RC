@@ -130,6 +130,7 @@ class UDPServer implements Server {
   }
 
   public void sendFile(String fname) throws Exception {
+  	System.out.println(fname);
     File file = new File(fname);
     if (file.isFile()) {
       try {
@@ -141,6 +142,13 @@ class UDPServer implements Server {
         while (read < fileBytes.length && (numRead = diStream.read(fileBytes, read, fileBytes.length - read)) >= 0) {
           read = read + numRead;
         }
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] data = outputStream.toByteArray();
+        DatagramPacket sendPacket = new DatagramPacket(fileBytes, fileBytes.length, clientAdd, 2020);
+        DatagramSocket socket = new DatagramSocket(2020);
+        socket.send(sendPacket);
+        System.out.println("File sent");
       } catch (Exception e) {
         e.printStackTrace();
         System.out.println(e);
