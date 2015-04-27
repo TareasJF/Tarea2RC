@@ -44,7 +44,8 @@ class UDPServer implements Server {
 		if (answer.equals("admin")) {
 			send("331");
 			answer = receive();
-			if (answer.equals("passwordSecreto")) {
+      if (answer.equals("p")) {
+			// if (answer.equals("passwordSecreto")) {
 				send("230");
 			}
 			else {
