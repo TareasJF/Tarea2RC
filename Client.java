@@ -13,8 +13,8 @@ interface Client
   public void help(int n);
 
   public static void main(String args[])throws Exception {
-    int controlP = 2121;
-    int dataP = 2020;
+    int controlP = 1234;
+    int dataP = 4321;
 
     Client client;
     if (args.length != 1) {
