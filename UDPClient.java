@@ -154,10 +154,10 @@ class UDPClient implements Client
       f.write(dp.getData(), 0,  dp.getLength());
       clientSocket.receive(dp);
       bytesReceived = bytesReceived + dp.getLength();
+      System.out.println(new String(dp.getData(),0,dp.getLength())); 
     }
 
     // System.out.println(" whiiiiiile2");
-    // System.out.println(new String(dp.getData(),0,dp.getLength())); 
 
     f.close();
   }

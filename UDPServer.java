@@ -137,10 +137,11 @@ class UDPServer implements Server {
     int size = (int) f.getChannel().size();
     send("150 "+fname+" ("+String.valueOf(size)+")");
     DatagramSocket dsoc = new DatagramSocket(dataP);
-
     while(f.available()!=0) {
       f.read(b);
+
       dsoc.send(new DatagramPacket( b, 1024, clientAdd,clientP));
+      System.out.println(new String(b ,0,b.getLength())); 
     }                     
     f.close();
     dsoc.close();
