@@ -13,8 +13,8 @@ interface Server
   public void quit() throws Exception;
 
   public static void main(String args[])throws Exception {
-    int controlP = 1234;
-    int dataP = 4321;
+    int controlP = 21;
+    int dataP = 20;
     Server server;
     if (args.length != 1) {
       System.out.println("Uso: ");
