@@ -141,7 +141,6 @@ class UDPServer implements Server {
       f.read(b);
 
       dsoc.send(new DatagramPacket( b, 1024, clientAdd,clientP));
-      System.out.println(new String(b ,0 , 1024)); 
     }                     
     f.close();
     dsoc.close();

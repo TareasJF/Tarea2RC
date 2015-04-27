@@ -144,7 +144,7 @@ class UDPClient implements Client
   }
 
   public void receiveFile(String file, int size) throws Exception {
-    byte b[]=new byte[size];
+    byte b[] = new byte[2048];
     DatagramPacket dp = new DatagramPacket( b, b.length );
 
     FileOutputStream f = new FileOutputStream("received/"+file);
@@ -154,7 +154,7 @@ class UDPClient implements Client
       f.write(dp.getData(), 0,  dp.getLength());
       clientSocket.receive(dp);
       bytesReceived = bytesReceived + dp.getLength();
-      System.out.println(new String(dp.getData(),0,dp.getLength())); 
+      System.out.println( bytesReceived + "/" + size); 
     }
 
     // System.out.println(" whiiiiiile2");
