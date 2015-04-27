@@ -139,6 +139,7 @@ class UDPServer implements Server {
     DatagramSocket dsoc=new DatagramSocket(dataP);
     int i=0;
     while(f.available()!=0) {
+      System.out.println(" whiiiiiile "+Integer.parseInt(i));
       b[i]=(byte)f.read();
       i++;
     }                     

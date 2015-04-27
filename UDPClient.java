@@ -148,8 +148,11 @@ class UDPClient implements Client
     DatagramSocket dsoc=new DatagramSocket(dataP);
     FileOutputStream f=new FileOutputStream("received/"+file);
     while(true) {
+
       DatagramPacket dp=new DatagramPacket(b,b.length);
+      System.out.println(" whiiiiiile1");
       dsoc.receive(dp);
+      System.out.println(" whiiiiiile2");
       System.out.println(new String(dp.getData(),0,dp.getLength()));                             
 
     }
