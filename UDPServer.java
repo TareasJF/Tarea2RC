@@ -136,17 +136,13 @@ class UDPServer implements Server {
     FileInputStream f = new FileInputStream(fname);
     int size = (int) f.getChannel().size();
     send("150 "+fname+" ("+String.valueOf(size)+")");
-    int i=0;
+    DatagramSocket dsoc = new DatagramSocket(dataP);
+
     while(f.available()!=0) {
-      b[i]=(byte)f.read();
-      i++;
+      f.read(b);
+      dsoc.send(new DatagramPacket( b, 1024, clientAdd,clientP));
     }                     
-    DatagramSocket dsoc = new DatagramSocket();
-    System.out.println("close");
     f.close();
-    System.out.println("close a");
-    dsoc.send(new DatagramPacket( b, i, clientAdd,clientP));
-    System.out.println("close b");
     dsoc.close();
   }
 }
