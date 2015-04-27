@@ -52,8 +52,7 @@ class UDPClient implements Client
       help(1);
       return;
     }
-    send("cd");
-    send(dir);
+    send("cd "+dir);
     String ans = receive();
     if (ans.equals("250")) {
       System.out.println(dir + " es el nuevo directorio de trabajo.");
@@ -70,22 +69,20 @@ class UDPClient implements Client
     }
     send("ls");
     String ans = receive();
-    while (!ans.equals("226")) {
-      System.out.println(ans);
-      ans = receive();
-    }
+    System.out.println(ans);
+    System.out.println(ans);
   }
   public void get(String fname) throws Exception {
-    System.out.println("UDP get "+ fname +"...");
     if (!conected) {
       help(1);
       return;
     }
-    send("get");
-    send(fname);
-    String ans = receive();
-    if (ans.equals("150")) {
-      receiveFile(fname);
+    send("get "+fname);
+    String ans[] = receive().split(" ");
+    if (ans[0].equals("150")) {
+      System.out.println("dentro");
+      int size = Integer.parseInt( ans[2].replace("(","").replace(")","") );
+      receiveFile(fname, size);
     }
   }
   public void put(String fname) throws Exception {
@@ -94,7 +91,7 @@ class UDPClient implements Client
       help(1);
       return;
     }
-    send("put");
+    send("put "+fname);
     String ans = receive();
     if (ans.equals("150")) {
 
@@ -142,34 +139,19 @@ class UDPClient implements Client
     DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
     clientSocket.receive(receivePacket);
     String answer = new String(receivePacket.getData());
+    System.out.println("< "+answer);
     return answer.trim();
   }
 
-  public void receiveFile(String file) throws Exception {
-    file = "rec" + file;
-    int b = Integer.parseInt(receive());
-    byte[] receiveData = new byte[b];
-    DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-    clientSocket.receive(receivePacket);
+  public void receiveFile(String file, int size) throws Exception {
+    byte b[]=new byte[size];
+    DatagramSocket dsoc=new DatagramSocket(dataP);
+    FileOutputStream f=new FileOutputStream("received/"+file);
+    while(true) {
+      DatagramPacket dp=new DatagramPacket(b,b.length);
+      dsoc.receive(dp);
+      System.out.println(new String(dp.getData(),0,dp.getLength()));                             
 
-    if (!new File(file).exists()) {
-        new File(file).mkdirs();
-    }
-    File dstFile = new File(file);
-
-    FileOutputStream fileOutputStream = null;
-    try {
-        fileOutputStream = new FileOutputStream(dstFile);
-        fileOutputStream.write(receiveData);
-        fileOutputStream.flush();
-        fileOutputStream.close();
-        System.out.println("Output file : " + file + " is successfully saved ");
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } 
-    catch (IOException e) {
-        e.printStackTrace();
     }
   }
 
