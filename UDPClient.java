@@ -146,13 +146,15 @@ class UDPClient implements Client
   public void receiveFile(String file, int size) throws Exception {
     byte b[]=new byte[size];
     DatagramSocket dsoc = new DatagramSocket(dataP);
+    DatagramPacket dp = new DatagramPacket( b, b.length );
+
     FileOutputStream f = new FileOutputStream("received/"+file);
     while(true) {
 
-      DatagramPacket dp = new DatagramPacket(b,b.length);
       dsoc.receive(dp);
       System.out.println(" whiiiiiile2");
-      System.out.println(new String(dp.getData(),0,dp.getLength()));                             
+      System.out.println(new String(dp.getData(),0,dp.getLength())); 
+      dp.setLength(b.length);                            
 
     }
   }

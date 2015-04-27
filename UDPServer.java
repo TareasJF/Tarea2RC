@@ -132,20 +132,21 @@ class UDPServer implements Server {
   }
 
   public void sendFile(String fname) throws Exception {
-    byte b[]=new byte[1024];
-    FileInputStream f=new FileInputStream(fname);
+    byte b[] = new byte[1024];
+    FileInputStream f = new FileInputStream(fname);
     int size = (int) f.getChannel().size();
     send("150 "+fname+" ("+String.valueOf(size)+")");
-    DatagramSocket dsoc=new DatagramSocket(dataP);
     int i=0;
     while(f.available()!=0) {
       b[i]=(byte)f.read();
       i++;
     }                     
+    DatagramSocket dsoc = new DatagramSocket();
     System.out.println("close");
     f.close();
     System.out.println("close a");
-    dsoc.send(new DatagramPacket(b,i,clientAdd,clientP));
+    dsoc.send(new DatagramPacket( b, i, clientAdd,clientP));
     System.out.println("close b");
+    dsoc.close();
   }
 }
