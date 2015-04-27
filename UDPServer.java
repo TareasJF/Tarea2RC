@@ -13,10 +13,10 @@ class UDPServer implements Server {
   String dir;
 
   public UDPServer (int control, int data) throws Exception {
-  	serverSocket = new DatagramSocket(controlP);
-  	dir = ".";
+    dir = ".";
     controlP = control;
     dataP = data;
+  	serverSocket = new DatagramSocket(controlP);
   }
 
   public void run() throws Exception {

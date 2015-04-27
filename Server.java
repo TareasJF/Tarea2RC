@@ -15,6 +15,7 @@ interface Server
   public static void main(String args[])throws Exception {
     int controlP = 2121;
     int dataP = 2020;
+    
     Server server;
     if (args.length != 1) {
       System.out.println("Uso: ");
