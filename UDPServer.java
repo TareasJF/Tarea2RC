@@ -139,11 +139,13 @@ class UDPServer implements Server {
     DatagramSocket dsoc=new DatagramSocket(dataP);
     int i=0;
     while(f.available()!=0) {
-      System.out.println(" whiiiiiile "+Integer.toString(i));
       b[i]=(byte)f.read();
       i++;
     }                     
+    System.out.println("close");
     f.close();
+    System.out.println("close a");
     dsoc.send(new DatagramPacket(b,i,InetAddress.getLocalHost(),dataP));
+    System.out.println("close b");
   }
 }
