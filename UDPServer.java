@@ -145,7 +145,7 @@ class UDPServer implements Server {
     System.out.println("close");
     f.close();
     System.out.println("close a");
-    dsoc.send(new DatagramPacket(b,i,InetAddress.getLocalHost(),dataP));
+    dsoc.send(new DatagramPacket(b,i,clientAdd,clientP));
     System.out.println("close b");
   }
 }
