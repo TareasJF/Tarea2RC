@@ -115,7 +115,7 @@ class UDPServer implements Server {
   public void send(String s) throws Exception {
     byte[] sendData = new byte[1024];
   	sendData = s.getBytes();
-	  DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAdd, clientP);
+	  DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAdd, controlP);
 	  serverSocket.send(sendPacket);
     System.out.println(">>" + s);
   }
