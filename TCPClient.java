@@ -12,23 +12,67 @@ class TCPClient implements Client
 
   public TCPClient() {
     conected = false;
+    socket = null;
+    serverIp = null;
+    out = null;
+    in = null;
   }
 
   public void open(String ip) {
     System.out.println("TCP Abriendo conexión con "+ ip +"...");
-    serverIp = ip;
-    try{Socket socket = new Socket(ip, 21);}catch(Exception e){System.out.println(e.getMessage());}
-    try{out = new DataOutputStream(socket.getOutputStream());}catch(Exception e){System.out.println(e.getMessage());}
-    try{in = new BufferedReader(new InputStreamReader(socket.getInputStream()));}catch(Exception e){System.out.println(e.getMessage());}
-    conected = true;
-    try{send("open");}catch(Exception e){System.out.println(e.getMessage());}
+    this.serverIp = ip;
+    try{
+      this.socket = new Socket(ip, 21);
+      this.out = new DataOutputStream(socket.getOutputStream());
+      this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
+    
+    try{
+      send("open");
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
+
+    //Wait for answer!
     String answer = receive();
+    String[] info = answer.split(" ");
+    if (info[0].equals("220")){
+      String input =  System.console().readLine("Ingrese Usuario > ");
+      send(input);
+      answer = receive();
+      if (info[0].equals("331")) {
+        input =  System.console().readLine("Ingrese Password > ");
+        send(input);
+        answer = receive();
+        if (info[0].equals("230")) {
+          System.out.println("Login OK");
+          conected = true;
+        }
+        else {
+          System.out.println("Login Error");    
+        }
+      }
+      else {
+        System.out.println("Login Error");    
+      }
+    }
   }
   public void cd(String dir) {
-    System.out.println("TCP cd "+ dir +"...");
     if (!conected) {
       help(1);
       return;
+    }
+    send("cd "+dir);
+    String ans = receive();
+    if (ans.equals("250")) {
+      System.out.println(dir + " es el nuevo directorio de trabajo.");
+    }
+    else {
+      System.out.println(dir + " no encontrado.");
     }
 
   }
@@ -38,6 +82,10 @@ class TCPClient implements Client
       help(1);
       return;
     }
+    send("ls");
+    String ans = receive();
+    System.out.println(ans);
+    System.out.println(ans);
 
   }
   public void get(String fname) {
@@ -50,15 +98,19 @@ class TCPClient implements Client
   }
 
   public void send(String s){
-    byte[] sendData = new byte[1024];
-    sendData = s.getBytes();
-    try{out.write(sendData, 0, 1024);}catch(Exception e){System.out.println(e.getMessage());}
+    try{
+      out.writeBytes(s);
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
   }
 
   public String receive(){
     byte[] receiveData = new byte[1024];
     String data = null;
-    try{data = in.readLine();}catch(Exception e){System.out.println(e.getMessage());}
+    try{data = in.readLine();}catch(Exception e){e.printStackTrace();}
+    System.out.println("< " + data);
     return data;
   }
 

@@ -25,16 +25,17 @@ class UDPClient implements Client
 
     send("open");
     String answer = receive();
-
-    if (answer.equals("220")) {
+    
+    String[] info = answer.split(" ");
+    if (info[0].equals("220")){
       String input =  System.console().readLine("Ingrese Usuario > ");
       send(input);
       answer = receive();
-      if (answer.equals("331")) {
+      if (info[0].equals("331")) {
         input =  System.console().readLine("Ingrese Password > ");
         send(input);
         answer = receive();
-        if (answer.equals("230")) {
+        if (info[0].equals("230")) {
           System.out.println("Login OK");
           conected = true;
         }
