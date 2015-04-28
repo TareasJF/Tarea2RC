@@ -29,7 +29,6 @@ interface Client
       client = new UDPClient(controlP,dataP);
     }
     else if (args[0].equals("tcp")) {
-
       client = new TCPClient();
     }
     else {
