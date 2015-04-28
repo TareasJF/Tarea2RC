@@ -35,6 +35,9 @@ class UDPServer implements Server {
   		else if (cm[0].equals("get")) {
   			get(cm[1]);
   		}
+      else if (cm[0].equals("put")) {
+        put(cm[1], cm[2]);
+      }
     }
   }
 
@@ -104,9 +107,11 @@ class UDPServer implements Server {
     sendFile(fname);
   }
 
-  public void put(String fname) throws Exception {
+  public void put(String fname, String size) throws Exception {
     System.out.println("UDP put "+ fname +"...");
-
+    int bytes = Integer.parseInt( size.replace("(","").replace(")","") );
+    String dir = this.dir + fname;
+    receiveFile(dir, size);
   }
 
   public void quit() throws Exception {
@@ -146,5 +151,29 @@ class UDPServer implements Server {
                          
     f.close();
     dsoc.close();
+  }
+
+  public void receiveFile(String file, int size) throws Exception {
+    byte b[] = new byte[2048];
+    DatagramPacket dp = new DatagramPacket( b, b.length );
+
+    FileOutputStream f = new FileOutputStream("received/"+file);
+    int bytesReceived = 0;
+    System.out.print("Receiving file...");
+    while(bytesReceived < size) {
+      clientSocket.receive(dp);
+      bytesReceived = bytesReceived + dp.getLength();
+      int bytes = dp.getLength();
+      if (bytesReceived - size > 0) {
+        bytes = bytesReceived - size;
+        bytesReceived = size;
+      }
+
+      System.out.print("\r     " + bytesReceived + "/" + size + "bytes     "); 
+      f.write(dp.getData(), 0,  bytes);
+    }
+    System.out.println(); 
+
+    f.close();
   }
 }

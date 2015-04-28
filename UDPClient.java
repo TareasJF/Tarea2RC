@@ -26,14 +26,15 @@ class UDPClient implements Client
     send("open");
     String answer = receive();
     
+    char pass[];
     String[] info = answer.split(" ");
     if (info[0].equals("220")){
       String input =  System.console().readLine("Ingrese Usuario > ");
       send(input);
       answer = receive();
       if (info[0].equals("331")) {
-        input =  System.console().readLine("Ingrese Password > ");
-        send(input);
+        pass =  System.console().readPassword("Ingrese Password > ");
+        send(new String(pass));
         answer = receive();
         if (info[0].equals("230")) {
           System.out.println("Login OK");
@@ -71,6 +72,7 @@ class UDPClient implements Client
     send("ls");
     String ans = receive();
     System.out.println(ans);
+    ans = receive();
     System.out.println(ans);
   }
   public void get(String fname) throws Exception {
@@ -91,12 +93,7 @@ class UDPClient implements Client
       help(1);
       return;
     }
-    send("put "+fname);
-    String ans = receive();
-    if (ans.equals("150")) {
-
-    }
-
+    sendFile(fname);
   }
 
   public void quit() throws Exception {
@@ -139,8 +136,23 @@ class UDPClient implements Client
     DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
     clientSocket.receive(receivePacket);
     String answer = new String(receivePacket.getData());
-    System.out.println("< "+answer);
     return answer.trim();
+  }
+
+  public void sendFile(String fname) throws Exception {
+    byte b[] = new byte[1024];
+    FileInputStream f = new FileInputStream(fname);
+    int size = (int) f.getChannel().size();
+    send("put "+fname+" ("+String.valueOf(size)+")");
+    DatagramSocket dsoc = new DatagramSocket(dataP);
+    
+    while(f.available()!=0) {
+      f.read(b);
+      dsoc.send(new DatagramPacket( b, 1024, clientAdd,clientP));
+    }
+                         
+    f.close();
+    dsoc.close();
   }
 
   public void receiveFile(String file, int size) throws Exception {
@@ -163,8 +175,6 @@ class UDPClient implements Client
       f.write(dp.getData(), 0,  bytes);
     }
     System.out.println(); 
-
-    // System.out.println(" whiiiiiile2");
 
     f.close();
   }
