@@ -92,12 +92,7 @@ class UDPClient implements Client
       help(1);
       return;
     }
-    send("put "+fname);
-    String ans = receive();
-    if (ans.equals("150")) {
-
-    }
-
+    sendFile(fname);
   }
 
   public void quit() throws Exception {
@@ -143,6 +138,22 @@ class UDPClient implements Client
     return answer.trim();
   }
 
+  public void sendFile(String fname) throws Exception {
+    byte b[] = new byte[1024];
+    FileInputStream f = new FileInputStream(fname);
+    int size = (int) f.getChannel().size();
+    send("put "+fname+" ("+String.valueOf(size)+")");
+    DatagramSocket dsoc = new DatagramSocket(dataP);
+    
+    while(f.available()!=0) {
+      f.read(b);
+      dsoc.send(new DatagramPacket( b, 1024, clientAdd,clientP));
+    }
+                         
+    f.close();
+    dsoc.close();
+  }
+
   public void receiveFile(String file, int size) throws Exception {
     byte b[] = new byte[2048];
     DatagramPacket dp = new DatagramPacket( b, b.length );
@@ -163,8 +174,6 @@ class UDPClient implements Client
       f.write(dp.getData(), 0,  bytes);
     }
     System.out.println(); 
-
-    // System.out.println(" whiiiiiile2");
 
     f.close();
   }
