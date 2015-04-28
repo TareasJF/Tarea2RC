@@ -7,6 +7,8 @@ class TCPClient implements Client
   Boolean conected;
   Socket socket;
   String serverIp;
+  DataOutputStream out;
+  BufferedReader in;
 
   public TCPClient() {
     conected = false;
@@ -14,6 +16,13 @@ class TCPClient implements Client
 
   public void open(String ip) {
     System.out.println("TCP Abriendo conexión con "+ ip +"...");
+    serverIp = ip;
+    try{Socket socket = new Socket(ip, 21);}catch(Exception e){System.out.println(e.getMessage());}
+    try{out = new DataOutputStream(socket.getOutputStream());}catch(Exception e){System.out.println(e.getMessage());}
+    try{in = new BufferedReader(new InputStreamReader(socket.getInputStream()));}catch(Exception e){System.out.println(e.getMessage());}
+    conected = true;
+    try{send("open");}catch(Exception e){System.out.println(e.getMessage());}
+    String answer = receive();
   }
   public void cd(String dir) {
     System.out.println("TCP cd "+ dir +"...");
@@ -24,7 +33,7 @@ class TCPClient implements Client
 
   }
   public void ls() {
-    System.out.println("TCP ls");
+    send("ls");
     if (!conected) {
       help(1);
       return;
@@ -39,6 +48,20 @@ class TCPClient implements Client
     }
 
   }
+
+  public void send(String s){
+    byte[] sendData = new byte[1024];
+    sendData = s.getBytes();
+    try{out.write(sendData, 0, 1024);}catch(Exception e){System.out.println(e.getMessage());}
+  }
+
+  public String receive(){
+    byte[] receiveData = new byte[1024];
+    String data = null;
+    try{data = in.readLine();}catch(Exception e){System.out.println(e.getMessage());}
+    return data;
+  }
+
   public void put(String fname) {
     System.out.println("TCP put "+ fname +"...");
     if (!conected) {

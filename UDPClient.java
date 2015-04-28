@@ -82,7 +82,6 @@ class UDPClient implements Client
     send("get "+fname);
     String ans[] = receive().split(" ");
     if (ans[0].equals("150")) {
-      System.out.println("dentro");
       int size = Integer.parseInt( ans[2].replace("(","").replace(")","") );
       receiveFile(fname, size);
     }
@@ -150,13 +149,20 @@ class UDPClient implements Client
 
     FileOutputStream f = new FileOutputStream("received/"+file);
     int bytesReceived = 0;
-
+    System.out.print("Receiving file...");
     while(bytesReceived < size) {
-      f.write(dp.getData(), 0,  dp.getLength());
       clientSocket.receive(dp);
       bytesReceived = bytesReceived + dp.getLength();
-      System.out.println( bytesReceived + "/" + size); 
+      int bytes = dp.getLength();
+      if (bytesReceived - size > 0) {
+        bytes = bytesReceived - size;
+        bytesReceived = size;
+      }
+
+      System.out.print("\r     " + bytesReceived + "/" + size + "bytes     "); 
+      f.write(dp.getData(), 0,  bytes);
     }
+    System.out.println(); 
 
     // System.out.println(" whiiiiiile2");
 

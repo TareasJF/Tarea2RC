@@ -47,6 +47,7 @@ class UDPServer implements Server {
       if (answer.equals("p")) {
 			// if (answer.equals("passwordSecreto")) {
 				send("230");
+        System.out.println("Connected to "+clientAdd);
 			}
 			else {
 				send("530");
@@ -137,11 +138,12 @@ class UDPServer implements Server {
     int size = (int) f.getChannel().size();
     send("150 "+fname+" ("+String.valueOf(size)+")");
     DatagramSocket dsoc = new DatagramSocket(dataP);
+    
     while(f.available()!=0) {
       f.read(b);
-
       dsoc.send(new DatagramPacket( b, 1024, clientAdd,clientP));
-    }                     
+    }
+                         
     f.close();
     dsoc.close();
   }
