@@ -13,6 +13,9 @@ interface Server
   public void quit() throws Exception;
 
   public static void main(String args[])throws Exception {
+    int controlP = 2121;
+    int dataP = 2020;
+    
     Server server;
     if (args.length != 1) {
       System.out.println("Uso: ");
@@ -23,7 +26,7 @@ interface Server
       return;
     }
     else if (args[0].equals("udp")) {
-      server = new UDPServer();
+      server = new UDPServer( controlP, dataP);
       server.run();
     }
     else if (args[0].equals("tcp")) {

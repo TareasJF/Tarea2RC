@@ -12,25 +12,28 @@ class UDPServer implements Server {
   int dataP;
   String dir;
 
-  public UDPServer () throws Exception {
-  	serverSocket = new DatagramSocket(2121);
-  	dir = ".";
+  public UDPServer (int control, int data) throws Exception {
+    dir = ".";
+    controlP = control;
+    dataP = data;
+  	serverSocket = new DatagramSocket(controlP);
   }
 
   public void run() throws Exception {
   	while(true) {
   		String answer = receive();
-  		if (answer.equals("open")) {
+      String cm[] = answer.split(" "); 
+  		if (cm[0].equals("open")) {
   			open();
   		}
-  		else if (answer.equals("ls")) {
+  		else if (cm[0].equals("ls")) {
   			ls();
   		}
-  		else if (answer.equals("cd")) {
-  			cd(receive());
+  		else if (cm[0].equals("cd")) {
+  			cd(cm[1]);
   		}
-  		else if (answer.equals("get")) {
-  			get(receive());
+  		else if (cm[0].equals("get")) {
+  			get(cm[1]);
   		}
     }
   }
@@ -41,8 +44,10 @@ class UDPServer implements Server {
 		if (answer.equals("admin")) {
 			send("331");
 			answer = receive();
-			if (answer.equals("passwordSecreto")) {
+      if (answer.equals("p")) {
+			// if (answer.equals("passwordSecreto")) {
 				send("230");
+        System.out.println("Connected to "+clientAdd);
 			}
 			else {
 				send("530");
@@ -84,19 +89,18 @@ class UDPServer implements Server {
     for (String d : dir.list()) {
     	File f = new File(this.dir+"/"+d);
     	if (f.isFile()) {
-    		d = "file   " + d;
+    		list = list + "\nfile   " + d;
     	}
     	else {
-    		d = "dir    " + d;
+    		list = list + "\ndir    " + d;
     	}
-			send(d);
-		}
+    }
+		send(list);
 		send("226");
   }
 
   public void get(String fname) throws Exception {
     System.out.println("UDP get "+ fname +"...");
-    send("150");
     sendFile(fname);
   }
 
@@ -112,8 +116,7 @@ class UDPServer implements Server {
   public void send(String s) throws Exception {
     byte[] sendData = new byte[1024];
   	sendData = s.getBytes();
-	  DatagramPacket sendPacket =
-	  new DatagramPacket(sendData, sendData.length, clientAdd, clientP);
+	  DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAdd, clientP);
 	  serverSocket.send(sendPacket);
     System.out.println(">>" + s);
   }
@@ -130,31 +133,18 @@ class UDPServer implements Server {
   }
 
   public void sendFile(String fname) throws Exception {
-  	System.out.println(fname);
-    File file = new File(fname);
-    if (file.isFile()) {
-      try {
-        DataInputStream diStream = new DataInputStream(new FileInputStream(file));
-        long len = (int) file.length();
-        byte[] fileBytes = new byte[(int) len];
-        int read = 0;
-        int numRead = 0;
-        while (read < fileBytes.length && (numRead = diStream.read(fileBytes, read, fileBytes.length - read)) >= 0) {
-          read = read + numRead;
-        }
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        byte[] data = outputStream.toByteArray();
-        DatagramPacket sendPacket = new DatagramPacket(fileBytes, fileBytes.length, clientAdd, 2020);
-        DatagramSocket socket = new DatagramSocket(2020);
-        socket.send(sendPacket);
-        System.out.println("File sent");
-      } catch (Exception e) {
-        e.printStackTrace();
-        System.out.println(e);
-      }
-    } else {
-      System.out.println("path specified is not pointing to a file");
+    byte b[] = new byte[1024];
+    FileInputStream f = new FileInputStream(fname);
+    int size = (int) f.getChannel().size();
+    send("150 "+fname+" ("+String.valueOf(size)+")");
+    DatagramSocket dsoc = new DatagramSocket(dataP);
+    
+    while(f.available()!=0) {
+      f.read(b);
+      dsoc.send(new DatagramPacket( b, 1024, clientAdd,clientP));
     }
+                         
+    f.close();
+    dsoc.close();
   }
 }

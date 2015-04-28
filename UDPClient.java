@@ -52,8 +52,7 @@ class UDPClient implements Client
       help(1);
       return;
     }
-    send("cd");
-    send(dir);
+    send("cd "+dir);
     String ans = receive();
     if (ans.equals("250")) {
       System.out.println(dir + " es el nuevo directorio de trabajo.");
@@ -70,22 +69,19 @@ class UDPClient implements Client
     }
     send("ls");
     String ans = receive();
-    while (!ans.equals("226")) {
-      System.out.println(ans);
-      ans = receive();
-    }
+    System.out.println(ans);
+    System.out.println(ans);
   }
   public void get(String fname) throws Exception {
-    System.out.println("UDP get "+ fname +"...");
     if (!conected) {
       help(1);
       return;
     }
-    send("get");
-    send(fname);
-    String ans = receive();
-    if (ans.equals("150")) {
-      receiveFile(fname);
+    send("get "+fname);
+    String ans[] = receive().split(" ");
+    if (ans[0].equals("150")) {
+      int size = Integer.parseInt( ans[2].replace("(","").replace(")","") );
+      receiveFile(fname, size);
     }
   }
   public void put(String fname) throws Exception {
@@ -94,7 +90,7 @@ class UDPClient implements Client
       help(1);
       return;
     }
-    send("put");
+    send("put "+fname);
     String ans = receive();
     if (ans.equals("150")) {
 
@@ -142,35 +138,34 @@ class UDPClient implements Client
     DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
     clientSocket.receive(receivePacket);
     String answer = new String(receivePacket.getData());
+    System.out.println("< "+answer);
     return answer.trim();
   }
 
-  public void receiveFile(String file) throws Exception {
-    file = "rec" + file;
-    int b = Integer.parseInt(receive());
-    byte[] receiveData = new byte[b];
-    DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-    clientSocket.receive(receivePacket);
+  public void receiveFile(String file, int size) throws Exception {
+    byte b[] = new byte[2048];
+    DatagramPacket dp = new DatagramPacket( b, b.length );
 
-    if (!new File(file).exists()) {
-        new File(file).mkdirs();
-    }
-    File dstFile = new File(file);
+    FileOutputStream f = new FileOutputStream("received/"+file);
+    int bytesReceived = 0;
+    System.out.print("Receiving file...");
+    while(bytesReceived < size) {
+      clientSocket.receive(dp);
+      bytesReceived = bytesReceived + dp.getLength();
+      int bytes = dp.getLength();
+      if (bytesReceived - size > 0) {
+        bytes = bytesReceived - size;
+        bytesReceived = size;
+      }
 
-    FileOutputStream fileOutputStream = null;
-    try {
-        fileOutputStream = new FileOutputStream(dstFile);
-        fileOutputStream.write(receiveData);
-        fileOutputStream.flush();
-        fileOutputStream.close();
-        System.out.println("Output file : " + file + " is successfully saved ");
+      System.out.print("\r     " + bytesReceived + "/" + size + "bytes     "); 
+      f.write(dp.getData(), 0,  bytes);
     }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } 
-    catch (IOException e) {
-        e.printStackTrace();
-    }
+    System.out.println(); 
+
+    // System.out.println(" whiiiiiile2");
+
+    f.close();
   }
 
 }
