@@ -25,14 +25,15 @@ class UDPClient implements Client
 
     send("open");
     String answer = receive();
+    char pass[];
 
     if (answer.equals("220")) {
       String input =  System.console().readLine("Ingrese Usuario > ");
       send(input);
       answer = receive();
       if (answer.equals("331")) {
-        input =  System.console().readLine("Ingrese Password > ");
-        send(input);
+        pass =  System.console().readPassword("Ingrese Password > ");
+        send(new String(pass));
         answer = receive();
         if (answer.equals("230")) {
           System.out.println("Login OK");
@@ -70,6 +71,7 @@ class UDPClient implements Client
     send("ls");
     String ans = receive();
     System.out.println(ans);
+    ans = receive();
     System.out.println(ans);
   }
   public void get(String fname) throws Exception {
@@ -139,7 +141,6 @@ class UDPClient implements Client
     DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
     clientSocket.receive(receivePacket);
     String answer = new String(receivePacket.getData());
-    System.out.println("< "+answer);
     return answer.trim();
   }
 
