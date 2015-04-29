@@ -5,9 +5,9 @@
 
 # Compilación:
 
-** javac *.java
+* javac *.java
 
 # Ejecución:
 
-** java Server
-** java Client
+* java Server ( udp | tcp ) 
+* java Client ( udp | tcp )
