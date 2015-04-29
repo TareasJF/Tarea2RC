@@ -22,7 +22,7 @@ class TCPServer implements Server
 	String pass;
 
 	DataOutputStream out;
-  	BufferedReader in;
+	BufferedReader in;
 
 	public TCPServer(){
 		socket = null;
@@ -137,12 +137,72 @@ class TCPServer implements Server
 		send("530 Login incorrect.\n");
 	}
 
-	public void get(String s){
+	public void get(String fname) throws Exception{
+		if(!auth_complete)
+		{
+			send("530 Please login with USER and PASS.\n");
+			return;
+		}
+		if(!transferReady){
+			send("425 Use PORT or PASV first.\n");
+			return;
+		}
+		send("150 Here comes the data.\n");
+		DataOutputStream transferOut = null;
+		File file = null;
+		DataInputStream fileIn = null;
+		try{
+			file = new File(fname);
+			fileIn = new DataInputStream(new FileInputStream(file));
+		}
+		catch(IOException e){
+			if(transferSocket != null)
+			{
+				transferSocket.close();
+				transferSocket = null;
+			}
+			if(pasvSocket != null)
+			{
+				pasvSocket.close();
+				pasvSocket = null;
+			}
+			transferReady = false;
+			send("550 File not found or not enough permissions.\n");
+			return;
+		}
+		try{
+			transferOut = new DataOutputStream(transferSocket.getOutputStream());
+			byte b = 0;
+			while((b = fileIn.readByte()) != -1)
+			{
+			  transferOut.write(b);
+			}
 
+			fileIn.close();
+			transferOut.close();
+		}
+		catch(Exception e){
+		}
+		if(transferSocket != null)
+		{
+			transferSocket.close();
+			transferSocket = null;
+		}
+		if(pasvSocket != null)
+		{
+			pasvSocket.close();
+			pasvSocket = null;
+		}
+		transferReady = false;
+		send("226 Done.\n");
 	}
 
 	public void put (String s, String size){
-
+		if(!auth_complete)
+		{
+			send("530 Please login with USER and PASS.\n");
+			return;
+		}
 	}
 
 	public void cd(String dir){
@@ -210,20 +270,22 @@ class TCPServer implements Server
 			pasvSocket = null;
 		}
 		String[] connection_info = text.split(",");
-        connection_info[5] = connection_info[5].replace(").", "");
+		connection_info[5] = connection_info[5].replace(").", "");
 		int port = Integer.parseInt(connection_info[4])*256 + Integer.parseInt(connection_info[5]);
 		String address = listenSocket.getRemoteSocketAddress().toString();
-        address = address.split("/")[1];
-        address = address.split(":")[0];
-        try{
-          transferSocket = new Socket(address, port, listenSocket.getLocalAddress(), 20);
-          send("200 PORT command successful.\n");
-          transferReady = true;
-        }
-        catch(Exception e){
-          send("425	Can't open data connection.\n");
-          return;
-        }
+		address = address.split("/")[1];
+		address = address.split(":")[0];
+		try{
+		  transferSocket = new Socket(address, port, listenSocket.getLocalAddress(), 20);
+		  transferSocket.setReuseAddress(true);
+		  send("200 PORT command successful.\n");
+		  transferReady = true;
+		}
+		catch(Exception e){
+		  send("425	Can't open data connection.\n");
+		  e.printStackTrace();
+		  return;
+		}
 	}
 
 	public void pasv() throws Exception{
@@ -245,15 +307,15 @@ class TCPServer implements Server
 		pasvSocket = new ServerSocket(0);
 		int port = pasvSocket.getLocalPort();
 		String address = listenSocket.getLocalSocketAddress().toString();
-        address = address.split("/")[1];
-        address = address.split(":")[0];
-        String[] ipChunks = address.split("\\.");
-        String sendCmd = String.format("(%s,%s,%s,%s,%d,%d)", ipChunks[0], ipChunks[1], ipChunks[2], ipChunks[3], (port - port%256)/256, port%256);
-        send("227 Entering Passive Mode "+sendCmd+".\n");
+		address = address.split("/")[1];
+		address = address.split(":")[0];
+		String[] ipChunks = address.split("\\.");
+		String sendCmd = String.format("(%s,%s,%s,%s,%d,%d)", ipChunks[0], ipChunks[1], ipChunks[2], ipChunks[3], (port - port%256)/256, port%256);
+		send("227 Entering Passive Mode "+sendCmd+".\n");
 
-        //Wait for connection! c:
-        transferSocket = pasvSocket.accept();
-        transferReady = true;
+		//Wait for connection! c:
+		transferSocket = pasvSocket.accept();
+		transferReady = true;
 
 	}
 
@@ -268,24 +330,25 @@ class TCPServer implements Server
 			return;
 		}
 		send("150 Here comes the list.\n");
-	    String list = " ";
-	    File dir = new File(this.currentDir);
-	    for (String d : dir.list()) {
-	    	File f = new File(this.currentDir+"/"+d);
-	    	if (f.isFile()) {
-	    		list = list + "\nfile   " + d;
-	    	}
-	    	else {
-	    		list = list + "\ndir    " + d;
-	    	}
-	    }
-	    DataOutputStream dout = new DataOutputStream(transferSocket.getOutputStream());
-	    dout.writeBytes(list);
-	    dout.close();
+		String list = " ";
+		File dir = new File(this.currentDir);
+		for (String d : dir.list()) {
+			File f = new File(this.currentDir+"/"+d);
+			if (f.isFile()) {
+				list = list + "\nfile   " + d;
+			}
+			else {
+				list = list + "\ndir    " + d;
+			}
+		}
+		DataOutputStream dout = new DataOutputStream(transferSocket.getOutputStream());
+		dout.writeBytes(list);
+		dout.close();
 		send("226 Transfer complete.\n");
 
 		if(transferSocket != null)
 		{
+			transferSocket.setSoLinger(true,0);
 			transferSocket.close();
 			transferSocket = null;
 		}
@@ -298,25 +361,25 @@ class TCPServer implements Server
 	}
 
 	public void send(String s){
-	    byte[] sendData = s.getBytes();
-	    try{
-	      out.write(sendData, 0, sendData.length);
-	    }
-	    catch(Exception e){
-	      e.printStackTrace();
-	  	}
+		byte[] sendData = s.getBytes();
+		try{
+		  out.write(sendData, 0, sendData.length);
+		}
+		catch(Exception e){
+		  e.printStackTrace();
+		}
 	}
 
-    public String receive() throws Exception
-    {
-	    byte[] receiveData = new byte[1024];
-	    String data = null;
-	    try{data = in.readLine();}catch(Exception e){e.printStackTrace();}
-	    System.out.println("< " + data);
-	    return data;
-  	}
-  	public void quit() throws Exception{
-  		if(transferSocket != null)
+	public String receive() throws Exception
+	{
+		byte[] receiveData = new byte[1024];
+		String data = null;
+		try{data = in.readLine();}catch(Exception e){e.printStackTrace();}
+		System.out.println("< " + data);
+		return data;
+	}
+	public void quit() throws Exception{
+		if(transferSocket != null)
 		{
 			transferSocket.close();
 			transferSocket = null;
@@ -327,5 +390,5 @@ class TCPServer implements Server
 			pasvSocket = null;
 		}
 		listenSocket.close();
-  	}
+	}
 }
