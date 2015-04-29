@@ -80,7 +80,13 @@ class TCPClient implements Client
     String[] info = ans.split(" ");
     if(info[0].equals("250"))
     {
-      System.out.println(dir + " es el nuevo directorio de trabajo.");
+      send("PWD\n");
+      ans = receive();
+      info = ans.split(" ");
+      if(info[0].equals("257"))
+      {
+        System.out.println(info[1].trim()+" es el nuevo directorio de trabajo.");
+      }
     }
     else {
       System.out.println(dir + " no encontrado.");
@@ -394,7 +400,9 @@ class TCPClient implements Client
         address = address.split("/")[1];
         address = address.split(":")[0];
         String[] ipChunks = address.split("\\.");
-        ServerSocket sSocket = new ServerSocket(0);
+        ServerSocket sSocket = new ServerSocket();
+        sSocket.setReuseAddress(true);
+        sSocket.bind(new InetSocketAddress(0));
         int port = sSocket.getLocalPort();
         String sendCmd = String.format("%s,%s,%s,%s,%d,%d", ipChunks[0], ipChunks[1], ipChunks[2], ipChunks[3], (port - port%256)/256, port%256);
         //Wait for server to connect to me
