@@ -110,8 +110,14 @@ class UDPServer implements Server {
   public void put(String fname, String size) throws Exception {
     System.out.println("UDP put "+ fname +"...");
     int bytes = Integer.parseInt( size.replace("(","").replace(")","") );
-    String dir = this.dir + fname;
-    receiveFile(dir, size);
+    String dir;
+    if (this.dir.equals(".")) {
+      dir = "put/" + fname;
+    } 
+    else {
+      dir = this.dir + fname;
+    }
+    receiveFile(dir, bytes);
   }
 
   public void quit() throws Exception {
@@ -143,37 +149,60 @@ class UDPServer implements Server {
     int size = (int) f.getChannel().size();
     send("150 "+fname+" ("+String.valueOf(size)+")");
     DatagramSocket dsoc = new DatagramSocket(dataP);
-    
+    int bytes = 0;
     while(f.available()!=0) {
       f.read(b);
       dsoc.send(new DatagramPacket( b, 1024, clientAdd,clientP));
+      bytes += 1024;
+      if (bytes > size) {
+        bytes = size;
+      }
+      System.out.print("\r     " + bytes + "/" + size + " bytes     "); 
+      Thread.sleep(1);
     }
                          
+    System.out.println(); 
     f.close();
     dsoc.close();
   }
 
   public void receiveFile(String file, int size) throws Exception {
     byte b[] = new byte[2048];
+    DatagramSocket dsoc = new DatagramSocket(dataP);
     DatagramPacket dp = new DatagramPacket( b, b.length );
 
-    FileOutputStream f = new FileOutputStream("received/"+file);
+    FileOutputStream f = new FileOutputStream(file);
     int bytesReceived = 0;
     System.out.print("Receiving file...");
+    Boolean ok = true;
     while(bytesReceived < size) {
-      clientSocket.receive(dp);
-      bytesReceived = bytesReceived + dp.getLength();
-      int bytes = dp.getLength();
-      if (bytesReceived - size > 0) {
-        bytes = bytesReceived - size;
-        bytesReceived = size;
+      dsoc.setSoTimeout(2000);
+      try {
+        dsoc.receive(dp);
+        bytesReceived = bytesReceived + dp.getLength();
+        int bytes = dp.getLength();
+
+        if (bytesReceived - size > 0) {
+          bytes = bytesReceived - size;
+          bytesReceived = size;
+        }
+
+        System.out.print("\r     " + bytesReceived + "/" + size + " bytes     "); 
+        f.write(dp.getData(), 0,  bytes);
       }
-
-      System.out.print("\r     " + bytesReceived + "/" + size + "bytes     "); 
-      f.write(dp.getData(), 0,  bytes);
+      catch (SocketTimeoutException e) {
+        // timeout exception.
+        System.out.println("\nTiempo de espera agotado! Archivo corrompido");
+        ok = false;
+        break;
+      }
+      dsoc.setSoTimeout(0);
     }
-    System.out.println(); 
+    if (ok) {
+      System.out.println("\n226 Transferencia Completada"); 
+    }
 
+    dsoc.close();
     f.close();
   }
 }

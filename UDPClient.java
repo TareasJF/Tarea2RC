@@ -27,16 +27,15 @@ class UDPClient implements Client
     String answer = receive();
     
     char pass[];
-    String[] info = answer.split(" ");
-    if (info[0].equals("220")){
+    if (answer.equals("220")){
       String input =  System.console().readLine("Ingrese Usuario > ");
       send(input);
       answer = receive();
-      if (info[0].equals("331")) {
+      if (answer.equals("331")) {
         pass =  System.console().readPassword("Ingrese Password > ");
         send(new String(pass));
         answer = receive();
-        if (info[0].equals("230")) {
+        if (answer.equals("230")) {
           System.out.println("Login OK");
           conected = true;
         }
@@ -45,6 +44,7 @@ class UDPClient implements Client
         }
       }
       else {
+        System.out.println(answer);    
         System.out.println("Login Error");    
       }
     }
@@ -134,8 +134,18 @@ class UDPClient implements Client
   public String receive()  throws Exception {
     byte[] receiveData = new byte[1024];
     DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-    clientSocket.receive(receivePacket);
-    String answer = new String(receivePacket.getData());
+    clientSocket.setSoTimeout(2000);
+    String answer;
+    try {
+      clientSocket.receive(receivePacket);
+      answer = new String(receivePacket.getData());
+    }
+    catch (SocketTimeoutException e) {
+      // timeout exception.
+      System.out.println("Tiempo de espera agotado!");
+      answer = "425";
+    }
+    clientSocket.setSoTimeout(0);
     return answer.trim();
   }
 
@@ -145,12 +155,19 @@ class UDPClient implements Client
     int size = (int) f.getChannel().size();
     send("put "+fname+" ("+String.valueOf(size)+")");
     DatagramSocket dsoc = new DatagramSocket(dataP);
-    
+    int bytes = 0;
     while(f.available()!=0) {
       f.read(b);
-      dsoc.send(new DatagramPacket( b, 1024, clientAdd,clientP));
+      dsoc.send(new DatagramPacket( b, 1024, serverAdd, dataP ));
+      bytes += 1024;
+      if (bytes > size) {
+        bytes = size;
+      }
+      System.out.print("\r     " + bytes + "/" + size + " bytes     "); 
+      Thread.sleep(1);
     }
                          
+    System.out.println(); 
     f.close();
     dsoc.close();
   }
@@ -162,19 +179,32 @@ class UDPClient implements Client
     FileOutputStream f = new FileOutputStream("received/"+file);
     int bytesReceived = 0;
     System.out.print("Receiving file...");
+    Boolean ok = true;
     while(bytesReceived < size) {
-      clientSocket.receive(dp);
-      bytesReceived = bytesReceived + dp.getLength();
-      int bytes = dp.getLength();
-      if (bytesReceived - size > 0) {
-        bytes = bytesReceived - size;
-        bytesReceived = size;
-      }
+      clientSocket.setSoTimeout(2000);
+      try {
+        clientSocket.receive(dp);
+        bytesReceived = bytesReceived + dp.getLength();
+        int bytes = dp.getLength();
+        if (bytesReceived - size > 0) {
+          bytes = bytesReceived - size;
+          bytesReceived = size;
+        }
 
-      System.out.print("\r     " + bytesReceived + "/" + size + "bytes     "); 
-      f.write(dp.getData(), 0,  bytes);
+        System.out.print("\r     " + bytesReceived + "/" + size + " bytes     "); 
+        f.write(dp.getData(), 0,  bytes);
+      }
+      catch (SocketTimeoutException e) {
+        // timeout exception.
+        System.out.println("\nTiempo de espera agotado! Archivo corrompido");
+        ok = false;
+        break;
+      }
+      clientSocket.setSoTimeout(0);
     }
-    System.out.println(); 
+    if (ok) {
+      System.out.println("\n226 Transferencia Completada"); 
+    }
 
     f.close();
   }

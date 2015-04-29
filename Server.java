@@ -9,7 +9,7 @@ interface Server
   public void cd(String dir) throws Exception;
   public void ls() throws Exception;
   public void get(String fname) throws Exception;
-  public void put(String fname) throws Exception;
+  public void put(String fname, String size) throws Exception;
   public void quit() throws Exception;
 
   public static void main(String args[])throws Exception {
