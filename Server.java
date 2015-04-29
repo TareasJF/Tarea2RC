@@ -5,7 +5,6 @@ import java.util.*;
 interface Server
 {
   public void run() throws Exception;
-  public void open() throws Exception;
   public void cd(String dir) throws Exception;
   public void ls() throws Exception;
   public void get(String fname) throws Exception;
@@ -30,7 +29,8 @@ interface Server
       server.run();
     }
     else if (args[0].equals("tcp")) {
-      // server = new TCPServer();
+      server = new TCPServer();
+      server.run();
     }
     else {
       System.out.println("Uso: ");

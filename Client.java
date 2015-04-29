@@ -17,11 +17,11 @@ interface Client
     int dataP = 2020;
 
     Client client;
-    if (args.length != 1) {
+    if (args.length < 1) {
       System.out.println("Uso: ");
       System.out.println("    - java Client udp");
       System.out.println("          Inicia cliente con protocolo UDP.\n");
-      System.out.println("    - java Client tcp");
+      System.out.println("    - java Client tcp <act|pass>");
       System.out.println("          Inicia cliente con protocolo TCP.\n");
       return;
     }
@@ -29,7 +29,26 @@ interface Client
       client = new UDPClient(controlP,dataP);
     }
     else if (args[0].equals("tcp")) {
-      client = new TCPClient();
+      if(args.length < 2)
+      {
+        System.out.println("    - java Client tcp <actv|pasv>");
+        System.out.println("          Inicia cliente con protocolo TCP.\n");
+        System.out.println("    actv: Realiza transferencias en forma activa (el cliente se conecta)");
+        System.out.println("    pasv: Realiza transferencias en forma pasiva (el servidor se conecta");
+        return;
+      }
+      if(args[1].equals("actv"))
+        client = new TCPClient(true);
+      else if(args[1].equals("pasv"))
+        client = new TCPClient(false);
+      else
+      {
+        System.out.println("    - java Client tcp <actv|pasv>");
+        System.out.println("          Inicia cliente con protocolo TCP.\n");
+        System.out.println("    actv: Realiza transferencias en forma activa (el cliente se conecta)");
+        System.out.println("    pasv: Realiza transferencias en forma pasiva (el servidor se conecta)");
+        return;
+      }
     }
     else {
       return;
