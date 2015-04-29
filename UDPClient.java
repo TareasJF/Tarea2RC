@@ -127,6 +127,7 @@ class UDPClient implements Client
   public void send(String s)  throws Exception {
     byte[] sendData = new byte[1024];
     sendData = s.getBytes();
+    Thread.sleep(100);
     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAdd, controlP);
     clientSocket.send(sendPacket);
   }
@@ -154,12 +155,13 @@ class UDPClient implements Client
     FileInputStream f = new FileInputStream(fname);
     int size = (int) f.getChannel().size();
     send("put "+fname+" ("+String.valueOf(size)+")");
-    DatagramSocket dsoc = new DatagramSocket(dataP);
+    // DatagramSocket dsoc = new DatagramSocket(dataP);
+    
+    Thread.sleep(100);
     int bytes = 0;
     while(f.available()!=0) {
       f.read(b);
-      
-      dsoc.send(new DatagramPacket( b, 1024, serverAdd, dataP ));
+      clientSocket.send(new DatagramPacket( b, 1024, serverAdd, dataP ));
       bytes += 1024;
       if (bytes > size) {
         bytes = size;
@@ -170,7 +172,7 @@ class UDPClient implements Client
                          
     System.out.println(); 
     f.close();
-    dsoc.close();
+    //clientSocket.close();
   }
 
   public void receiveFile(String file, int size) throws Exception {
@@ -188,7 +190,7 @@ class UDPClient implements Client
         bytesReceived = bytesReceived + dp.getLength();
         int bytes = dp.getLength();
         if (bytesReceived - size > 0) {
-          bytes = bytesReceived - size;
+          bytes -= bytesReceived - size;
           bytesReceived = size;
         }
 
