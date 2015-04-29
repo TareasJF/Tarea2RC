@@ -21,20 +21,19 @@ class UDPClient implements Client
     System.out.println("UDP Conectando con "+ ip +"...");
     serverAdd = InetAddress.getByName(ip);
     serverIp = ip;
-    clientSocket = new DatagramSocket();
+    clientSocket = new DatagramSocket(controlP, serverAdd);
 
-    send("open");
-    String answer = receive();
+    String[] answer = receive().split(" ");
     
     char pass[];
-    if (answer.equals("220")){
+    if (answer[0].equals("220")){
       String input =  System.console().readLine("Ingrese Usuario > ");
-      send(input);
-      answer = receive();
-      if (answer.equals("331")) {
+      send("USER " + input);
+      answer = receive().split(" ");
+      if (answer[0].equals("331")) {
         pass =  System.console().readPassword("Ingrese Password > ");
-        send(new String(pass));
-        answer = receive();
+        send("PASS " + new String(pass));
+        answer = receive().split(" ");
         if (answer.equals("230")) {
           System.out.println("Login OK");
           conected = true;
@@ -156,7 +155,7 @@ class UDPClient implements Client
     int size = (int) f.getChannel().size();
     send("put "+fname+" ("+String.valueOf(size)+")");
     // DatagramSocket dsoc = new DatagramSocket(dataP);
-    
+
     Thread.sleep(100);
     int bytes = 0;
     while(f.available()!=0) {
