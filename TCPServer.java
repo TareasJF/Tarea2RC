@@ -46,9 +46,10 @@ class TCPServer implements Server
 		while(true)
 		{
 			System.out.println("FTP Server running");
+			System.out.println("Waiting for incoming connection.");
 			//Someone entered!
 			listenSocket = socket.accept();
-			System.out.println("Connection established");
+			System.out.println("Connection established.");
 			this.out = new DataOutputStream(listenSocket.getOutputStream());
 			this.in = new BufferedReader(new InputStreamReader(listenSocket.getInputStream()));
 			send("220 (FTP custom Server)\n");
@@ -88,7 +89,7 @@ class TCPServer implements Server
 				}
 				else if(info[0].equals("STOR"))
 				{
-					put(info[1], "0");
+					put(info[1], null);
 				}
 				else if(info[0].equals("PASV"))
 				{
@@ -124,7 +125,6 @@ class TCPServer implements Server
 			return;
 		}
 		this.pass = pass;
-		System.out.println("User: "+this.user+"Pass: "+this.pass);
 		if(this.user.equals("admin") && this.pass.equals("123456"))
 		{
 			this.auth_complete = true;
@@ -152,7 +152,7 @@ class TCPServer implements Server
 		File file = null;
 		DataInputStream fileIn = null;
 		try{
-			file = new File(fname);
+			file = new File(currentDir+"/"+fname);
 			fileIn = new DataInputStream(new FileInputStream(file));
 		}
 		catch(IOException e){
@@ -197,12 +197,63 @@ class TCPServer implements Server
 		send("226 Done.\n");
 	}
 
-	public void put (String s, String size){
+	public void put (String fname, String size) throws Exception{
 		if(!auth_complete)
 		{
 			send("530 Please login with USER and PASS.\n");
 			return;
 		}
+		if(!transferReady){
+			send("425 Use PORT or PASV first.\n");
+			return;
+		}
+		send("150 Here comes the data.\n");
+		DataInputStream transferIn = null;
+		File file = null;
+		DataOutputStream fileOut = null;
+		try{
+			file = new File(currentDir+"/"+fname);
+			fileOut = new DataOutputStream(new FileOutputStream(file));
+		}
+		catch(IOException e){
+			if(transferSocket != null)
+			{
+				transferSocket.close();
+				transferSocket = null;
+			}
+			if(pasvSocket != null)
+			{
+				pasvSocket.close();
+				pasvSocket = null;
+			}
+			transferReady = false;
+			send("550 Can't create file.\n");
+			return;
+		}
+		try{
+			transferIn = new DataInputStream(transferSocket.getInputStream());
+			byte b = 0;
+			while((b = transferIn.readByte()) != -1)
+			{
+				fileOut.write(b);
+			}
+			transferIn.close();
+			fileOut.close();
+		}
+		catch(Exception e){
+		}
+		if(transferSocket != null)
+		{
+			transferSocket.close();
+			transferSocket = null;
+		}
+		if(pasvSocket != null)
+		{
+			pasvSocket.close();
+			pasvSocket = null;
+		}
+		transferReady = false;
+		send("226 Done.\n");
 	}
 
 	public void cd(String dir){
@@ -276,15 +327,16 @@ class TCPServer implements Server
 		address = address.split("/")[1];
 		address = address.split(":")[0];
 		try{
-		  transferSocket = new Socket(address, port, listenSocket.getLocalAddress(), 20);
+		  transferSocket = new Socket();
 		  transferSocket.setReuseAddress(true);
+		  transferSocket.bind(new InetSocketAddress(listenSocket.getLocalAddress(), 20));
+		  transferSocket.connect(new InetSocketAddress(address, port));
 		  send("200 PORT command successful.\n");
 		  transferReady = true;
 		}
 		catch(Exception e){
-		  send("425	Can't open data connection.\n");
-		  e.printStackTrace();
-		  return;
+			send("425 Can't open data connection. Retry later...\n");
+			return;
 		}
 	}
 
@@ -343,12 +395,12 @@ class TCPServer implements Server
 		}
 		DataOutputStream dout = new DataOutputStream(transferSocket.getOutputStream());
 		dout.writeBytes(list);
+		dout.flush();
 		dout.close();
 		send("226 Transfer complete.\n");
 
 		if(transferSocket != null)
 		{
-			transferSocket.setSoLinger(true,0);
 			transferSocket.close();
 			transferSocket = null;
 		}
