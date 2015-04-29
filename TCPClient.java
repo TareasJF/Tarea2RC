@@ -109,6 +109,7 @@ class TCPClient implements Client
           {
             System.out.println(line);
           }
+          reader.close();
           transferSocket.close();
           ans = receive();
           info = ans.split(" ");
@@ -119,12 +120,66 @@ class TCPClient implements Client
     }
   }
   public void get(String fname) {
-    System.out.println("TCP get "+ fname +"...");
     if (!conected) {
       help(1);
       return;
     }
+    send("PASV\n");
+    String ans = receive();
+    String[] info = ans.split(" ");
+    if(info[0].equals("227"))
+    {
+      String[] connection_info = info[4].split(",");
+      connection_info[5] = connection_info[5].replace(").", "");
+      int port = Integer.parseInt(connection_info[4])*256 + Integer.parseInt(connection_info[5]);
+      Socket transferSocket = null;
+      try{
+        transferSocket = new Socket(serverIp, port);
+      }
+      catch(Exception e){
+        System.out.println("Unable to open port for data transfer (Port: "+Integer.toString(port)+") >");
+        return;
+      }
+      send("RETR "+fname+"\n");
+      ans = receive();
+      info = ans.split(" ");
 
+      if(info[0].equals("150"))
+      {
+        String size = info[info.length-1];
+        size = size.replace("bytes).", "");
+        size = size.replace("(", "");
+        DataInputStream transferIn = null;
+        File file = null;
+        DataOutputStream fileOut = null;
+        try{
+          transferIn = new DataInputStream(transferSocket.getInputStream());
+          file = new File(fname);
+          fileOut = new DataOutputStream(new FileOutputStream(file));
+        }
+        catch(Exception e){
+        }
+        try{
+          byte b = 0;
+          while((b = transferIn.readByte()) != -1)
+          {
+            fileOut.write(b);
+          }
+          transferIn.close();
+          fileOut.close();
+        }
+        catch(Exception e){
+        }
+        try{
+          transferSocket.close();
+        }
+        catch(Exception e){
+          
+        }
+        ans = receive();
+        info = ans.split(" ");
+      }
+    }
   }
 
   public void send(String s){
@@ -146,10 +201,65 @@ class TCPClient implements Client
   }
 
   public void put(String fname) {
-    System.out.println("TCP put "+ fname +"...");
     if (!conected) {
       help(1);
       return;
+    }
+    send("PASV\n");
+    String ans = receive();
+    String[] info = ans.split(" ");
+    if(info[0].equals("227"))
+    {
+      String[] connection_info = info[4].split(",");
+      connection_info[5] = connection_info[5].replace(").", "");
+      int port = Integer.parseInt(connection_info[4])*256 + Integer.parseInt(connection_info[5]);
+      Socket transferSocket = null;
+      try{
+        transferSocket = new Socket(serverIp, port);
+      }
+      catch(Exception e){
+        System.out.println("Unable to open port for data transfer (Port: "+Integer.toString(port)+") >");
+        return;
+      }
+      send("STOR "+fname+"\n");
+      ans = receive();
+      info = ans.split(" ");
+
+      if(info[0].equals("150"))
+      {
+        String size = info[info.length-1];
+        size = size.replace("bytes).", "");
+        size = size.replace("(", "");
+        DataInputStream transferIn = null;
+        File file = null;
+        DataOutputStream fileOut = null;
+        try{
+          transferIn = new DataInputStream(transferSocket.getInputStream());
+          file = new File(fname);
+          fileOut = new DataOutputStream(new FileOutputStream(file));
+        }
+        catch(Exception e){
+        }
+        try{
+          byte b = 0;
+          while((b = transferIn.readByte()) != -1)
+          {
+            fileOut.write(b);
+          }
+          transferIn.close();
+          fileOut.close();
+        }
+        catch(Exception e){
+        }
+        try{
+          transferSocket.close();
+        }
+        catch(Exception e){
+          
+        }
+        ans = receive();
+        info = ans.split(" ");
+      }
     }
 
   }
