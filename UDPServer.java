@@ -16,10 +16,16 @@ class UDPServer implements Server {
     dir = ".";
     controlP = control;
     dataP = data;
-  	serverSocket = new DatagramSocket(controlP);
+    serverSocket = new DatagramSocket(controlP);
   }
 
   public void run() throws Exception {
+    System.out.println("FTP Server running");
+    while(!serverSocket.isConnected()) {
+      Thread.sleep(10);
+    }
+      //Someone entered!
+    System.out.println("Connection established");
   	while(true) {
   		String answer = receive();
       String cm[] = answer.split(" "); 
