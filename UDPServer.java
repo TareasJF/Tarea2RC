@@ -189,6 +189,7 @@ class UDPServer implements Server {
 
         System.out.print("\r     " + bytesReceived + "/" + size + " bytes     "); 
         f.write(dp.getData(), 0,  bytes);
+
       }
       catch (SocketTimeoutException e) {
         // timeout exception.

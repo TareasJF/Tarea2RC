@@ -158,6 +158,7 @@ class UDPClient implements Client
     int bytes = 0;
     while(f.available()!=0) {
       f.read(b);
+      
       dsoc.send(new DatagramPacket( b, 1024, serverAdd, dataP ));
       bytes += 1024;
       if (bytes > size) {
