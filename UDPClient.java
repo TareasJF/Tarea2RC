@@ -21,7 +21,9 @@ class UDPClient implements Client
     System.out.println("UDP Conectando con "+ ip +"...");
     serverAdd = InetAddress.getByName(ip);
     serverIp = ip;
-    clientSocket = new DatagramSocket(controlP, serverAdd);
+    clientSocket = new DatagramSocket(controlP);
+
+    send("PASV");
 
     String[] answer = receive().split(" ");
     
@@ -34,17 +36,16 @@ class UDPClient implements Client
         pass =  System.console().readPassword("Ingrese Password > ");
         send("PASS " + new String(pass));
         answer = receive().split(" ");
-        if (answer.equals("230")) {
-          System.out.println("Login OK");
+        if (answer[0].equals("230")) {
+          System.out.println(answer[0] + " " + answer[1] + " " + answer[2]);    
           conected = true;
         }
         else {
-          System.out.println("Login Error");    
+          System.out.println(answer[0] + " " + answer[1] + " " + answer[2]);    
         }
       }
       else {
-        System.out.println(answer);    
-        System.out.println("Login Error");    
+        System.out.println(answer[0] + " " + answer[1] + " " + answer[2]);    
       }
     }
   }
@@ -53,7 +54,7 @@ class UDPClient implements Client
       help(1);
       return;
     }
-    send("cd "+dir);
+    send("CWD "+dir);
     String ans = receive();
     if (ans.equals("250")) {
       System.out.println(dir + " es el nuevo directorio de trabajo.");
@@ -68,7 +69,7 @@ class UDPClient implements Client
       help(1);
       return;
     }
-    send("ls");
+    send("LIST");
     String ans = receive();
     System.out.println(ans);
     ans = receive();
@@ -79,7 +80,7 @@ class UDPClient implements Client
       help(1);
       return;
     }
-    send("get "+fname);
+    send("RETR "+fname);
     String ans[] = receive().split(" ");
     if (ans[0].equals("150")) {
       int size = Integer.parseInt( ans[2].replace("(","").replace(")","") );
@@ -153,7 +154,7 @@ class UDPClient implements Client
     byte b[] = new byte[1024];
     FileInputStream f = new FileInputStream(fname);
     int size = (int) f.getChannel().size();
-    send("put "+fname+" ("+String.valueOf(size)+")");
+    send("STOR "+fname+" ("+String.valueOf(size)+")");
     // DatagramSocket dsoc = new DatagramSocket(dataP);
 
     Thread.sleep(100);

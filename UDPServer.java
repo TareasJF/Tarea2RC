@@ -21,28 +21,46 @@ class UDPServer implements Server {
 
   public void run() throws Exception {
     System.out.println("FTP Server running");
-    while(!serverSocket.isConnected()) {
-      Thread.sleep(10);
-    }
+    
+    receive();
       //Someone entered!
-    System.out.println("Connection established");
-  	while(true) {
-  		String answer = receive();
-      String cm[] = answer.split(" "); 
-  		if (cm[0].equals("open")) {
-  			open();
-  		}
-  		else if (cm[0].equals("ls")) {
-  			ls();
-  		}
-  		else if (cm[0].equals("cd")) {
-  			cd(cm[1]);
-  		}
-  		else if (cm[0].equals("get")) {
-  			get(cm[1]);
-  		}
-      else if (cm[0].equals("put")) {
-        put(cm[1], cm[2]);
+    while (true) {
+      send("220 (FTP custom Server)");
+      String answer = receive();
+      if (answer.equals("USER admin")) {
+        send("331 Please specify the password.");
+        answer = receive();
+        if (answer.equals("PASS p")) {
+        // if (answer.equals("PASS passwordSecreto")) {
+          send("230 Login successful.");
+          System.out.println("Connected to "+clientAdd);
+        }
+        else {
+          send("530 Login incorrect.");
+        }
+      }
+      else {
+        send("530 Login incorrect.");
+      }
+
+    	while(true) {
+    		answer = receive();
+        String cm[] = answer.split(" "); 
+    		if (cm[0].equals("open")) {
+    			open();
+    		}
+    		else if (cm[0].equals("LIST")) {
+    			ls();
+    		}
+    		else if (cm[0].equals("CWD")) {
+    			cd(cm[1]);
+    		}
+    		else if (cm[0].equals("RETR")) {
+    			get(cm[1]);
+    		}
+        else if (cm[0].equals("STOR")) {
+          put(cm[1], cm[2]);
+        }
       }
     }
   }
@@ -118,7 +136,7 @@ class UDPServer implements Server {
     int bytes = Integer.parseInt( size.replace("(","").replace(")","") );
     String dir;
     if (this.dir.equals(".")) {
-      dir = "put/" + fname;
+      dir = fname;
     } 
     else {
       dir = this.dir + fname;
