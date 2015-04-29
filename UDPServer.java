@@ -111,7 +111,7 @@ class UDPServer implements Server {
     System.out.println("UDP put "+ fname +"...");
     int bytes = Integer.parseInt( size.replace("(","").replace(")","") );
     String dir = this.dir + fname;
-    receiveFile(dir, size);
+    //receiveFile(dir, size);
   }
 
   public void quit() throws Exception {
@@ -161,7 +161,7 @@ class UDPServer implements Server {
     int bytesReceived = 0;
     System.out.print("Receiving file...");
     while(bytesReceived < size) {
-      clientSocket.receive(dp);
+      //clientSocket.receive(dp);
       bytesReceived = bytesReceived + dp.getLength();
       int bytes = dp.getLength();
       if (bytesReceived - size > 0) {

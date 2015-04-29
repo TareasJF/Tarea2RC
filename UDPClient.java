@@ -148,7 +148,7 @@ class UDPClient implements Client
     
     while(f.available()!=0) {
       f.read(b);
-      dsoc.send(new DatagramPacket( b, 1024, clientAdd,clientP));
+      //dsoc.send(new DatagramPacket( b, 1024, clientAdd,clientP));
     }
                          
     f.close();

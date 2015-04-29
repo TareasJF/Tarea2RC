@@ -29,25 +29,21 @@ class TCPClient implements Client
     catch(Exception e){
       e.printStackTrace();
     }
-    
-    try{
-      send("open");
-    }
-    catch(Exception e){
-      e.printStackTrace();
-    }
 
     //Wait for answer!
     String answer = receive();
     String[] info = answer.split(" ");
     if (info[0].equals("220")){
       String input =  System.console().readLine("Ingrese Usuario > ");
-      send(input);
+      send("USER "+input+"\n");
       answer = receive();
+      info = answer.split(" ");
       if (info[0].equals("331")) {
         input =  System.console().readLine("Ingrese Password > ");
+        send("PASS "+input+"\n");
         send(input);
         answer = receive();
+        info = answer.split(" ");
         if (info[0].equals("230")) {
           System.out.println("Login OK");
           conected = true;
@@ -66,9 +62,11 @@ class TCPClient implements Client
       help(1);
       return;
     }
-    send("cd "+dir);
-    String ans = receive();
-    if (ans.equals("250")) {
+    send("CWD "+dir+"\n");
+     String ans = receive();
+    String[] info = ans.split(" ");
+    if(info[0].equals("250"))
+    {
       System.out.println(dir + " es el nuevo directorio de trabajo.");
     }
     else {
@@ -77,16 +75,48 @@ class TCPClient implements Client
 
   }
   public void ls() {
-    send("ls");
     if (!conected) {
       help(1);
       return;
     }
-    send("ls");
+    send("PASV\n");
     String ans = receive();
-    System.out.println(ans);
-    System.out.println(ans);
+    String[] info = ans.split(" ");
+    if(info[0].equals("227"))
+    {
+      String[] connection_info = info[4].split(",");
+      connection_info[5] = connection_info[5].replace(").", "");
+      int port = Integer.parseInt(connection_info[4])*256 + Integer.parseInt(connection_info[5]);
+      Socket transferSocket = null;
+      try{
+        transferSocket = new Socket(serverIp, port);
+      }
+      catch(Exception e){
+        System.out.println("Unable to open port for data transfer (Port: "+Integer.toString(port)+") >");
+        return;
+      }
+      send("LIST\n");
+      ans = receive();
+      info = ans.split(" ");
 
+      if(info[0].equals("150"))
+      {
+        System.out.println(" > ");
+        try{
+          BufferedReader reader = new BufferedReader(new InputStreamReader(transferSocket.getInputStream()));
+          String line = null;
+          while((line = reader.readLine()) != null)
+          {
+            System.out.println(line);
+          }
+          transferSocket.close();
+          ans = receive();
+          info = ans.split(" ");
+        }
+        catch(Exception e){
+        }
+      }
+    }
   }
   public void get(String fname) {
     System.out.println("TCP get "+ fname +"...");
@@ -98,8 +128,9 @@ class TCPClient implements Client
   }
 
   public void send(String s){
+    byte[] sendData = s.getBytes();
     try{
-      out.writeBytes(s);
+      out.write(sendData, 0, sendData.length);
     }
     catch(Exception e){
       e.printStackTrace();
