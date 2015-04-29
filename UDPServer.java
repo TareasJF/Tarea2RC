@@ -128,6 +128,7 @@ class UDPServer implements Server {
     byte[] sendData = new byte[1024];
   	sendData = s.getBytes();
 	  DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAdd, clientP);
+    Thread.sleep(100);
 	  serverSocket.send(sendPacket);
     System.out.println(">>" + s);
   }
@@ -149,6 +150,8 @@ class UDPServer implements Server {
     int size = (int) f.getChannel().size();
     send("150 "+fname+" ("+String.valueOf(size)+")");
     DatagramSocket dsoc = new DatagramSocket(dataP);
+    
+    Thread.sleep(100);
     int bytes = 0;
     while(f.available()!=0) {
       f.read(b);
@@ -173,7 +176,7 @@ class UDPServer implements Server {
 
     FileOutputStream f = new FileOutputStream(file);
     int bytesReceived = 0;
-    System.out.print("Receiving file...");
+    System.out.println("Receiving file on port " + dsoc.getLocalPort() +" "+ dsoc.getPort());
     Boolean ok = true;
     while(bytesReceived < size) {
       dsoc.setSoTimeout(2000);
@@ -183,7 +186,7 @@ class UDPServer implements Server {
         int bytes = dp.getLength();
 
         if (bytesReceived - size > 0) {
-          bytes = bytesReceived - size;
+          bytes -= bytesReceived - size;
           bytesReceived = size;
         }
 
@@ -202,8 +205,8 @@ class UDPServer implements Server {
     if (ok) {
       System.out.println("\n226 Transferencia Completada"); 
     }
-
     dsoc.close();
+    f.flush();
     f.close();
   }
 }
