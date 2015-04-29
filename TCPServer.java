@@ -172,10 +172,11 @@ class TCPServer implements Server
 		}
 		try{
 			transferOut = new DataOutputStream(transferSocket.getOutputStream());
-			byte b = 0;
-			while((b = fileIn.readByte()) != -1)
+			byte[] barray = new byte[2048];
+			int nb;
+			while((nb = fileIn.read(barray, 0, barray.length)) != -1)
 			{
-			  transferOut.write(b);
+			  transferOut.write(barray, 0, nb);
 			}
 
 			fileIn.close();
@@ -232,15 +233,17 @@ class TCPServer implements Server
 		}
 		try{
 			transferIn = new DataInputStream(transferSocket.getInputStream());
-			byte b = 0;
-			while((b = transferIn.readByte()) != -1)
+			byte[] barray = new byte[2048];
+			int nb;
+			while((nb = transferIn.read(barray, 0, barray.length)) != -1)
 			{
-				fileOut.write(b);
+			  fileOut.write(barray, 0, nb);
 			}
 			transferIn.close();
 			fileOut.close();
 		}
 		catch(Exception e){
+			e.printStackTrace();	
 		}
 		if(transferSocket != null)
 		{
@@ -394,7 +397,10 @@ class TCPServer implements Server
 			}
 		}
 		DataOutputStream dout = new DataOutputStream(transferSocket.getOutputStream());
-		dout.writeBytes(list);
+
+		//Enviar todo de inmediato, el tamaño no es tan excesivo
+		byte[] barray = list.getBytes();
+		dout.write(barray, 0, barray.length);
 		dout.flush();
 		dout.close();
 		send("226 Transfer complete.\n");

@@ -225,11 +225,14 @@ class TCPClient implements Client
           catch(Exception e){
           }
           try{
-            byte b = 0;
-            while((b = transferIn.readByte()) != -1)
+            byte[] barray = new byte[2048];
+            int nb;
+            while((nb = transferIn.read(barray, 0, barray.length)) != -1)
             {
-              fileOut.write(b);
+              fileOut.write(barray, 0, nb);
             }
+            transferIn.close();
+            fileOut.close();
             transferIn.close();
             fileOut.close();
           }
@@ -283,10 +286,11 @@ class TCPClient implements Client
             catch(Exception e){
             }
             try{
-              byte b = 0;
-              while((b = transferIn.readByte()) != -1)
+              byte[] barray = new byte[2048];
+              int nb;
+              while((nb = transferIn.read(barray, 0, barray.length)) != -1)
               {
-                fileOut.write(b);
+                fileOut.write(barray, 0, nb);
               }
               transferIn.close();
               fileOut.close();
@@ -369,24 +373,27 @@ class TCPClient implements Client
             fileIn = new DataInputStream(new FileInputStream(file));
           }
           catch(Exception e){
+            e.printStackTrace();
           }
           try{
-            byte b = 0;
-            while((b = fileIn.readByte()) != -1)
+            byte[] barray = new byte[2048];
+            int nb;
+            while((nb = fileIn.read(barray, 0, barray.length)) != -1)
             {
-              transferOut.write(b);
+              transferOut.write(barray, 0, nb);
             }
             
             fileIn.close();
             transferOut.close();
           }
           catch(Exception e){
+             e.printStackTrace();
           }
           try{
             transferSocket.close();
           }
           catch(Exception e){
-            
+             e.printStackTrace();
           }
           ans = receive();
           info = ans.split(" ");
@@ -432,10 +439,11 @@ class TCPClient implements Client
             catch(Exception e){
             }
             try{
-              byte b = 0;
-              while((b = fileIn.readByte()) != -1)
+              byte[] barray = new byte[2048];
+              int nb;
+              while((nb = fileIn.read(barray, 0, barray.length)) != -1)
               {
-                transferOut.write(b);
+                transferOut.write(barray, 0, nb);
               }
               
               fileIn.close();
