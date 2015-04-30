@@ -68,12 +68,12 @@ class UDPServer implements Server {
 
 	public void open() throws Exception {
 		send("220");
-		String answer = receive();
-		if (answer.equals("admin")) {
+		String[] answer = receive().split(" ");
+		if (answer[1].equals("admin")) {
 			send("331");
-			answer = receive();
+			answer = receive().split(" ");
       // if (answer.equals("p")) {
-			if (answer.equals("passwordSecreto")) {
+			if (answer[1].equals("passwordSecreto")) {
 				send("230");
         System.out.println("Connected to "+clientAdd);
 			}
