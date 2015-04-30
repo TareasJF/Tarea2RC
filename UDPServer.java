@@ -34,6 +34,7 @@ class UDPServer implements Server {
         // if (answer.equals("PASS passwordSecreto")) {
           send("230 Login successful.");
           System.out.println("Connected to "+clientAdd);
+          this.dir = "/home";
         }
         else {
           send("530 Login incorrect.");
@@ -101,7 +102,8 @@ class UDPServer implements Server {
 				if (this.dir.equals(".")) {
 					this.dir = "";
 				}
-			  this.dir = this.dir + dir;
+			  this.dir = this.dir + "/"+dir;
+        System.out.printf("Dir: %s", this.dir);
 			  send("250");
 			  return;
 			}
