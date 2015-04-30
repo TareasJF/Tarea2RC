@@ -179,7 +179,7 @@ class UDPClient implements Client
     byte b[] = new byte[2048];
     DatagramPacket dp = new DatagramPacket( b, b.length );
 
-    FileOutputStream f = new FileOutputStream("received/"+file);
+    FileOutputStream f = new FileOutputStream(file);
     int bytesReceived = 0;
     System.out.print("Receiving file...");
     Boolean ok = true;

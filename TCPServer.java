@@ -125,7 +125,7 @@ class TCPServer implements Server
 			return;
 		}
 		this.pass = pass;
-		if(this.user.equals("admin") && this.pass.equals("123456"))
+		if(this.user.equals("admin") && this.pass.equals("passwordSecreto"))
 		{
 			this.auth_complete = true;
 			this.currentDir = "/home";
